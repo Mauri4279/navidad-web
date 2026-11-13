@@ -2,6 +2,7 @@
  * @file AsciiRenderEngine.js
  * @description Central Singleton rendering engine and animation loop (requestAnimationFrame).
  * Coordinates layered rendering (Background/Snow -> Ground -> Main Content -> Banner/HUD).
+ * Responsive dynamic font scaling for mobile and desktop screens.
  */
 
 import { AsciiBuffer } from './AsciiBuffer.js';
@@ -67,21 +68,38 @@ export class AsciiRenderEngine {
     this.ctx = canvas.getContext('2d', { alpha: false });
 
     window.addEventListener('resize', this.#handleResize);
+    window.addEventListener('orientationchange', this.#handleResize);
+
     this.#updateGridMetrics();
     this.#handleResize();
   }
 
   /**
-   * Measures monospace character dimensions accurately.
+   * Dynamically calculates responsive monospace character dimensions.
+   * Scales font size according to viewport width for crisp mobile readability.
    * @private
    */
   #updateGridMetrics() {
-    if (!this.ctx) return;
+    if (!this.ctx || typeof window === 'undefined') return;
+
+    const width = window.innerWidth;
+
+    if (width < 380) {
+      this.fontSize = 8.5;  // ~60-65 cols on small phones (iPhone SE, small Android)
+    } else if (width < 500) {
+      this.fontSize = 9.5;  // ~65-70 cols on standard phones
+    } else if (width < 768) {
+      this.fontSize = 11.0; // ~70-75 cols on large phones / small tablets
+    } else if (width < 1200) {
+      this.fontSize = 13.0; // ~80-100 cols on laptops
+    } else {
+      this.fontSize = 14.0; // ~100-140 cols on desktop
+    }
 
     this.ctx.font = `${this.fontSize}px ${this.fontFamily}`;
     const metrics = this.ctx.measureText('M');
-    this.cellWidth = Math.ceil(metrics.width);
-    this.cellHeight = Math.ceil(this.fontSize * 1.15);
+    this.cellWidth = metrics.width;
+    this.cellHeight = Math.ceil(this.fontSize * 1.25);
   }
 
   /**
@@ -91,6 +109,8 @@ export class AsciiRenderEngine {
    */
   #handleResize = () => {
     if (!this.canvas || !this.ctx) return;
+
+    this.#updateGridMetrics();
 
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = window.innerWidth;
@@ -104,8 +124,8 @@ export class AsciiRenderEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Dynamic grid size
-    const newCols = Math.max(40, Math.floor(displayWidth / this.cellWidth));
-    const newRows = Math.max(25, Math.floor(displayHeight / this.cellHeight));
+    const newCols = Math.max(36, Math.floor(displayWidth / this.cellWidth));
+    const newRows = Math.max(20, Math.floor(displayHeight / this.cellHeight));
 
     if (!this.buffer) {
       this.buffer = new AsciiBuffer(newCols, newRows);
@@ -222,6 +242,7 @@ export class AsciiRenderEngine {
     this.stop();
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', this.#handleResize);
+      window.removeEventListener('orientationchange', this.#handleResize);
     }
   }
 }
