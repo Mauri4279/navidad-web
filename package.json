@@ -1,0 +1,21 @@
+{
+  "name": "navidad-web-ascii",
+  "version": "1.0.0",
+  "description": "Interactive 100% ASCII Art Christmas Web Application with 3D Rotating Tree and Real-time Countdown",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "serve:py": "python -m http.server 3000"
+  },
+  "keywords": [
+    "ascii-art",
+    "canvas",
+    "christmas",
+    "vanilla-js",
+    "3d",
+    "solid",
+    "git-flow"
+  ],
+  "author": "Mauri",
+  "license": "MIT"
+}
