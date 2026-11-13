@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title> Mauri te desea feliz navidad!!!</title>
+  <title>Mauri te desea una feliz navidad!</title>
   <meta name="description" content="Experiencia interactiva de Navidad">
   <link rel="stylesheet" href="./src/styles/crt.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎄</text></svg>">
+  <link rel="icon" href="./favicon.ico">
 </head>
 <body>
   <div id="app-container" class="crt-active">
@@ -16,25 +16,6 @@
     <!-- Retro CRT Visual Overlays -->
     <div id="crt-scanlines" class="crt-scanlines"></div>
     <div class="crt-vignette"></div>
-
-    <!-- Retro Debug HUD / Control Toolbar -->
-    <footer id="debug-hud" role="toolbar" aria-label="Terminal Controls">
-      <span class="hud-label">TimeGate:</span>
-      <span id="hud-status" class="hud-status-badge locked">LOCKED</span>
-      
-      <button id="btn-force-christmas" class="hud-btn" title="Forzar Modo Navidad (Árbol 3D)">
-        🎄 Navidad (Debug)
-      </button>
-      <button id="btn-force-countdown" class="hud-btn" title="Forzar Cuenta Regresiva">
-        ⏳ Cuenta Regresiva
-      </button>
-      <button id="btn-auto-time" class="hud-btn" title="Restablecer reloj del sistema">
-        🔄 Automático
-      </button>
-      <button id="btn-toggle-crt" class="hud-btn" title="Alternar efecto de líneas CRT">
-        📺 CRT FX
-      </button>
-    </footer>
   </div>
 
   <script type="module" src="./src/main.js"></script>
