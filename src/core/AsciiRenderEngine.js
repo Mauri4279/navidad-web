@@ -76,7 +76,7 @@ export class AsciiRenderEngine {
 
   /**
    * Dynamically calculates responsive monospace character dimensions.
-   * Scales font size according to viewport width for crisp mobile readability.
+   * Ensures large, comfortable readability on phones, tablets, and desktops.
    * @private
    */
   #updateGridMetrics() {
@@ -84,22 +84,20 @@ export class AsciiRenderEngine {
 
     const width = window.innerWidth;
 
-    if (width < 380) {
-      this.fontSize = 8.5;  // ~60-65 cols on small phones (iPhone SE, small Android)
-    } else if (width < 500) {
-      this.fontSize = 9.5;  // ~65-70 cols on standard phones
+    if (width < 420) {
+      this.fontSize = 12.0; // Comfortably large on mobile phones (iPhone, Android)
     } else if (width < 768) {
-      this.fontSize = 11.0; // ~70-75 cols on large phones / small tablets
+      this.fontSize = 12.5; // Tablets
     } else if (width < 1200) {
-      this.fontSize = 13.0; // ~80-100 cols on laptops
+      this.fontSize = 13.5; // Laptops
     } else {
-      this.fontSize = 14.0; // ~100-140 cols on desktop
+      this.fontSize = 14.5; // Large desktop monitors
     }
 
     this.ctx.font = `${this.fontSize}px ${this.fontFamily}`;
     const metrics = this.ctx.measureText('M');
     this.cellWidth = metrics.width;
-    this.cellHeight = Math.ceil(this.fontSize * 1.25);
+    this.cellHeight = Math.ceil(this.fontSize * 1.22);
   }
 
   /**
@@ -124,7 +122,7 @@ export class AsciiRenderEngine {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Dynamic grid size
-    const newCols = Math.max(36, Math.floor(displayWidth / this.cellWidth));
+    const newCols = Math.max(34, Math.floor(displayWidth / this.cellWidth));
     const newRows = Math.max(20, Math.floor(displayHeight / this.cellHeight));
 
     if (!this.buffer) {
