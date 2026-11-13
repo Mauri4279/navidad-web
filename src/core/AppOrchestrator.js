@@ -1,7 +1,7 @@
 /**
  * @file AppOrchestrator.js
  * @description High-level orchestrator coordinating views, TimeGate state transitions,
- * and debug overrides. Adheres to Dependency Inversion Principle (DIP).
+ * audio playback, and debug overrides. Adheres to Dependency Inversion Principle (DIP).
  */
 
 import { TimeGateState } from './TimeGateController.js';
@@ -14,8 +14,9 @@ export class AppOrchestrator {
    * @param {import('../components/SnowSystem.js').SnowSystem} dependencies.snow
    * @param {import('../components/CountdownView.js').CountdownView} dependencies.countdownView
    * @param {import('../components/ChristmasTreeView.js').ChristmasTreeView} dependencies.treeView
+   * @param {import('./AudioController.js').AudioController} [dependencies.audio]
    */
-  constructor({ timeGate, engine, snow, countdownView, treeView }) {
+  constructor({ timeGate, engine, snow, countdownView, treeView, audio = null }) {
     if (!timeGate || !engine || !snow || !countdownView || !treeView) {
       throw new Error('[AppOrchestrator] Missing required dependencies.');
     }
@@ -25,6 +26,7 @@ export class AppOrchestrator {
     this.snow = snow;
     this.countdownView = countdownView;
     this.treeView = treeView;
+    this.audio = audio;
 
     this.currentView = null;
     this.unsubscribeTimeGate = null;
@@ -61,12 +63,22 @@ export class AppOrchestrator {
   }
 
   /**
-   * Switches active view based on state.
+   * Switches active view and controls background music based on state.
    * @param {string} state - 'LOCKED' | 'UNLOCKED'
    * @private
    */
   #applyState(state) {
-    const nextView = state === TimeGateState.UNLOCKED ? this.treeView : this.countdownView;
+    const isUnlocked = state === TimeGateState.UNLOCKED;
+    const nextView = isUnlocked ? this.treeView : this.countdownView;
+
+    // Control Christmas mode background audio
+    if (this.audio) {
+      if (isUnlocked) {
+        this.audio.play();
+      } else {
+        this.audio.pause();
+      }
+    }
 
     if (this.currentView !== nextView) {
       if (this.currentView && typeof this.currentView.onExit === 'function') {
@@ -102,17 +114,18 @@ export class AppOrchestrator {
 
     window.timeGate = this.timeGate;
     window.renderEngine = this.engine;
+    window.audioController = this.audio;
 
     // Easy helper to force Christmas mode
     window.forceChristmasMode = () => {
       this.timeGate.setDebugOverride(TimeGateState.UNLOCKED);
-      console.log('🎄 [Debug] Modo Navidad (UNLOCKED) forzado exitosamente.');
+      console.log('🎄 [Debug] Modo Navidad (UNLOCKED) forzado. Música de fondo activada.');
     };
 
     // Easy helper to force Countdown mode
     window.forceCountdownMode = () => {
       this.timeGate.setDebugOverride(TimeGateState.LOCKED);
-      console.log('⏳ [Debug] Modo Cuenta Regresiva (LOCKED) forzado exitosamente.');
+      console.log('⏳ [Debug] Modo Cuenta Regresiva (LOCKED) forzado. Música pausada.');
     };
 
     // Reset to system date
@@ -130,6 +143,11 @@ export class AppOrchestrator {
         window.forceChristmasMode();
       }
     };
+
+    // Audio controls
+    window.toggleAudio = () => {
+      this.audio?.toggle();
+    };
   }
 
   /**
@@ -138,6 +156,9 @@ export class AppOrchestrator {
   destroy() {
     if (this.unsubscribeTimeGate) {
       this.unsubscribeTimeGate();
+    }
+    if (this.audio) {
+      this.audio.pause();
     }
     this.engine.stop();
   }
