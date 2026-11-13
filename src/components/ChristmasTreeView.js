@@ -17,9 +17,9 @@ export class ChristmasTreeView extends SceneView {
     this.rotationSpeed = 0.55; // Radians per second
 
     // 3D Geometry specifications
-    this.treeHeight = 28;
-    this.baseRadius = 14;
-    this.cameraDistance = 45;
+    this.treeHeight = 50;
+    this.baseRadius = 15;
+    this.cameraDistance = 40;
     this.fov = 48;
 
     // Components
