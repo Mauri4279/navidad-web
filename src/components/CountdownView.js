@@ -1,12 +1,11 @@
 /**
  * @file CountdownView.js
- * @description View 1: Real-time Christmas countdown with an animated infinite ASCII hourglass
- * and compact digital ASCII numerals. Extends SceneView (Liskov Substitution Principle).
+ * @description View 1: Real-time Christmas countdown with compact digital ASCII numerals.
+ * Extends SceneView (Liskov Substitution Principle).
  */
 
 import { SceneView } from '../core/Interfaces.js';
 import { AsciiFont } from '../utils/AsciiFont.js';
-import { AsciiHourglass } from './AsciiHourglass.js';
 import { TimeGateController } from '../core/TimeGateController.js';
 
 export class CountdownView extends SceneView {
@@ -19,11 +18,10 @@ export class CountdownView extends SceneView {
     this.time = 0;
     this.countdownData = this.timeGate.getCountdown();
     this.pulse = 0;
-    this.hourglass = new AsciiHourglass();
   }
 
   /**
-   * Updates timer metrics, hourglass animation, and pulsation.
+   * Updates timer metrics and animation pulsation.
    * @param {number} deltaTime
    * @param {number} timestamp
    */
@@ -31,7 +29,6 @@ export class CountdownView extends SceneView {
     this.time += deltaTime;
     this.pulse = (Math.sin(this.time * 3) + 1) * 0.5;
     this.countdownData = this.timeGate.getCountdown();
-    this.hourglass.update(deltaTime);
   }
 
   /**
@@ -44,7 +41,7 @@ export class CountdownView extends SceneView {
   }
 
   /**
-   * Renders the animated hourglass and compact countdown into the ASCII buffer.
+   * Renders the compact countdown into the ASCII buffer.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
    */
   render(buffer) {
@@ -81,33 +78,32 @@ export class CountdownView extends SceneView {
     const clockWidth = combinedLines[0].length;
     const clockHeight = 3;
 
-    // Layout metrics
-    const hourglassWidth = 28;
-    const hourglassHeight = 17;
-    const totalHeight = 24;
-
-    const startY = Math.max(1, Math.floor((rows - totalHeight) / 2));
-    const hourglassX = Math.floor((cols - hourglassWidth) / 2);
+    // Centering layout
+    const contentHeight = 11;
+    const startY = Math.max(2, Math.floor((rows - contentHeight) / 2));
     const clockX = Math.floor((cols - clockWidth) / 2);
 
     // Colors
     const goldColor = '#ffd700';
     const cyanColor = '#38bdf8';
+    const greenColor = '#22c55e';
     const silverColor = '#94a3b8';
     const redColor = this.pulse > 0.5 ? '#ff2244' : '#b91c1c';
     const z = 10;
 
-    // 1. Title Banner
+    // 1. Decorative Top Border
+    const borderWidth = Math.max(clockWidth + 8, 48);
+    const borderX = Math.floor((cols - borderWidth) / 2);
+    const borderLine = '+' + '-'.repeat(borderWidth - 2) + '+';
+    buffer.writeString(borderX, startY, borderLine, greenColor, z);
+
+    // 2. Title
     const titleText = '* * * CUENTA REGRESIVA PARA NAVIDAD * * *';
     const titleX = Math.floor((cols - titleText.length) / 2);
-    buffer.writeString(titleX, startY, titleText, goldColor, z, '#fbbf24');
-
-    // 2. Animated Infinite Hourglass
-    const hourglassY = startY + 2;
-    this.hourglass.renderAt(buffer, hourglassX, hourglassY);
+    buffer.writeString(titleX, startY + 2, titleText, goldColor, z, '#fbbf24');
 
     // 3. Compact Countdown Clock
-    const clockY = hourglassY + hourglassHeight + 1;
+    const clockY = startY + 5;
     for (let r = 0; r < clockHeight; r++) {
       let curX = clockX;
 
@@ -154,5 +150,8 @@ export class CountdownView extends SceneView {
     buffer.writeString(curLabelX, labelsY, unitMins, silverColor, z);
     curLabelX += blockMins[0].length + separator.length + blockColon[0].length + separator.length;
     buffer.writeString(curLabelX, labelsY, unitSecs, silverColor, z);
+
+    // 5. Decorative Bottom Border
+    buffer.writeString(borderX, startY + 10, borderLine, greenColor, z);
   }
 }
