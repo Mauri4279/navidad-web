@@ -2,6 +2,7 @@
  * @file CountdownView.js
  * @description View 1: Real-time Christmas countdown with compact digital ASCII numerals.
  * Extends SceneView (Liskov Substitution Principle).
+ * Fully responsive layout for mobile screens and desktop viewports.
  */
 
 import { SceneView } from '../core/Interfaces.js';
@@ -42,6 +43,7 @@ export class CountdownView extends SceneView {
 
   /**
    * Renders the compact countdown into the ASCII buffer.
+   * Responsive against narrow phone screens.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
    */
   render(buffer) {
@@ -61,7 +63,8 @@ export class CountdownView extends SceneView {
     const blockMins = AsciiFont.renderCompact(minsStr, 0);
     const blockSecs = AsciiFont.renderCompact(secsStr, 0);
 
-    const separator = '  ';
+    // Adapt separator spacing to fit mobile screen widths
+    const separator = cols < 44 ? ' ' : '  ';
     const combinedLines = ['', '', ''];
 
     for (let r = 0; r < 3; r++) {
@@ -80,8 +83,8 @@ export class CountdownView extends SceneView {
 
     // Centering layout
     const contentHeight = 11;
-    const startY = Math.max(2, Math.floor((rows - contentHeight) / 2));
-    const clockX = Math.floor((cols - clockWidth) / 2);
+    const startY = Math.max(1, Math.floor((rows - contentHeight) / 2));
+    const clockX = Math.max(1, Math.floor((cols - clockWidth) / 2));
 
     // Colors
     const goldColor = '#ffd700';
@@ -91,15 +94,21 @@ export class CountdownView extends SceneView {
     const redColor = this.pulse > 0.5 ? '#ff2244' : '#b91c1c';
     const z = 10;
 
-    // 1. Decorative Top Border
-    const borderWidth = Math.max(clockWidth + 8, 48);
-    const borderX = Math.floor((cols - borderWidth) / 2);
-    const borderLine = '+' + '-'.repeat(borderWidth - 2) + '+';
-    buffer.writeString(borderX, startY, borderLine, greenColor, z);
+    // 1. Responsive Title
+    let titleText = '* * * CUENTA REGRESIVA PARA NAVIDAD * * *';
+    if (cols < 46 && cols >= 36) {
+      titleText = '* CUENTA REGRESIVA NAVIDAD *';
+    } else if (cols < 36) {
+      titleText = 'CUENTA REGRESIVA';
+    }
+    const titleX = Math.max(0, Math.floor((cols - titleText.length) / 2));
 
-    // 2. Title
-    const titleText = '* * * CUENTA REGRESIVA PARA NAVIDAD * * *';
-    const titleX = Math.floor((cols - titleText.length) / 2);
+    // 2. Responsive Decorative Top Border
+    const borderWidth = Math.min(cols - 2, Math.max(clockWidth + 6, titleText.length + 4));
+    const borderX = Math.max(0, Math.floor((cols - borderWidth) / 2));
+    const borderLine = '+' + '-'.repeat(Math.max(0, borderWidth - 2)) + '+';
+
+    buffer.writeString(borderX, startY, borderLine, greenColor, z);
     buffer.writeString(titleX, startY + 2, titleText, goldColor, z, '#fbbf24');
 
     // 3. Compact Countdown Clock
@@ -137,10 +146,10 @@ export class CountdownView extends SceneView {
 
     // 4. Units Labels
     const labelsY = clockY + 3;
-    const unitDays = ' DIAS ';
-    const unitHours = ' HORAS ';
-    const unitMins = ' MINS ';
-    const unitSecs = ' SEGS ';
+    const unitDays = cols < 44 ? 'DIAS' : ' DIAS ';
+    const unitHours = cols < 44 ? 'HORAS' : ' HORAS ';
+    const unitMins = cols < 44 ? 'MINS' : ' MINS ';
+    const unitSecs = cols < 44 ? 'SEGS' : ' SEGS ';
 
     let curLabelX = clockX;
     buffer.writeString(curLabelX, labelsY, unitDays, silverColor, z);

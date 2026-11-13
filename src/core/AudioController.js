@@ -2,6 +2,7 @@
  * @file AudioController.js
  * @description Manages YouTube background music playback for Christmas mode.
  * Adheres to Single Responsibility Principle (SRP).
+ * Handles mobile touch autoplay policies.
  */
 
 export class AudioController {
@@ -124,24 +125,23 @@ export class AudioController {
   }
 
   /**
-   * Browser Autoplay Policy: Listen for first user interaction (click/tap/key)
-   * to unlock audio playback.
+   * Browser Autoplay Policy: Listen for first touch or interaction
+   * on mobile or desktop to unlock audio playback.
    * @private
    */
   #bindUserInteraction() {
     if (typeof window === 'undefined') return;
 
+    const events = ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'];
     const unlockAudio = () => {
       this.userInteracted = true;
       if (this.shouldPlay) {
         this.play();
       }
-      window.removeEventListener('pointerdown', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
+      events.forEach((ev) => window.removeEventListener(ev, unlockAudio));
     };
 
-    window.addEventListener('pointerdown', unlockAudio, { once: true });
-    window.addEventListener('keydown', unlockAudio, { once: true });
+    events.forEach((ev) => window.addEventListener(ev, unlockAudio, { passive: true }));
   }
 
   /**

@@ -3,6 +3,7 @@
  * @description View 2: Volumetric 3D rotating ASCII Christmas Tree with ornaments, glowing garlands,
  * apex star with radiant light rays, perspective ground reflection, and stylized top banner.
  * Extends SceneView (Liskov Substitution Principle).
+ * Responsive 3D projection scaling for mobile and desktop screens.
  */
 
 import { SceneView } from '../core/Interfaces.js';
@@ -16,7 +17,7 @@ export class ChristmasTreeView extends SceneView {
     this.rotationAngle = 0;
     this.rotationSpeed = 0.55; // Radians per second
 
-    // 3D Geometry specifications
+    // 3D Geometry specifications (Preserves user custom dimensions)
     this.treeHeight = 50;
     this.baseRadius = 15;
     this.cameraDistance = 40;
@@ -58,7 +59,6 @@ export class ChristmasTreeView extends SceneView {
 
     for (let i = 0; i < totalPoints; i++) {
       // Height from 0 (base) to treeHeight (apex)
-      // Slight bias toward base for lush appearance
       const hNorm = Math.pow(Math.random(), 0.85);
       const y = hNorm * this.treeHeight;
 
@@ -240,7 +240,6 @@ export class ChristmasTreeView extends SceneView {
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
 
-        // Choose character based on distance from center
         let char = '.';
         if (r < 4) char = '=';
         else if (r < 7) char = '-';
@@ -270,13 +269,23 @@ export class ChristmasTreeView extends SceneView {
 
   /**
    * Renders the complete 3D scene (ground, tree, ornaments, lights, star, banner) into buffer.
+   * Adapts scale and position responsively to mobile and desktop aspect ratios.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
    */
   render(buffer) {
     const cols = buffer.cols;
     const rows = buffer.rows;
+
+    // Responsive positioning and scaling
+    const isPortrait = rows > cols;
     const centerX = cols * 0.5;
-    const centerY = rows * 0.60;
+    const centerY = isPortrait ? rows * 0.63 : rows * 0.58;
+
+    // Zoom out camera slightly on narrow viewports so tree and ground reflection fit without clipping
+    const targetWidthCols = 72;
+    const responsiveCam = cols < targetWidthCols
+      ? this.cameraDistance * (targetWidthCols / Math.max(36, cols))
+      : this.cameraDistance;
 
     // 1. Render Top Banner
     this.banner.render(buffer);
@@ -284,10 +293,9 @@ export class ChristmasTreeView extends SceneView {
     // 2. Render Ground Reflection / Snow Base (Perspective Rings)
     for (let i = 0; i < this.groundPoints.length; i++) {
       const pt = this.groundPoints[i];
-      const proj = Math3D.project(pt, this.cameraDistance, this.fov, centerX, centerY);
+      const proj = Math3D.project(pt, responsiveCam, this.fov, centerX, centerY);
 
       if (proj) {
-        // Ground color gradation from white near tree center to slate gray outward
         let groundColor = '#cbd5e1';
         if (pt.radiusNorm < 0.35) groundColor = '#f8fafc';
         else if (pt.radiusNorm > 0.75) groundColor = '#475569';
@@ -300,11 +308,9 @@ export class ChristmasTreeView extends SceneView {
     for (let i = 0; i < this.foliagePoints.length; i++) {
       const pt = this.foliagePoints[i];
       const rot = Math3D.rotateY(pt.x, pt.y, pt.z, this.rotationAngle);
-      const proj = Math3D.project(rot, this.cameraDistance, this.fov, centerX, centerY);
+      const proj = Math3D.project(rot, responsiveCam, this.fov, centerX, centerY);
 
       if (proj) {
-        // Depth-based color shading: front is brighter, back is darker
-        // Depth range is roughly -baseRadius to +baseRadius
         const depthNorm = (rot.z + this.baseRadius) / (this.baseRadius * 2);
 
         let foliageColor = '#15803d';
@@ -329,10 +335,9 @@ export class ChristmasTreeView extends SceneView {
     for (let i = 0; i < this.garlandPoints.length; i++) {
       const pt = this.garlandPoints[i];
       const rot = Math3D.rotateY(pt.x, pt.y, pt.z, this.rotationAngle);
-      const proj = Math3D.project(rot, this.cameraDistance, this.fov, centerX, centerY);
+      const proj = Math3D.project(rot, responsiveCam, this.fov, centerX, centerY);
 
       if (proj) {
-        // Twinkling animation
         const twinkle = Math.sin(this.time * 6 + pt.phase);
         const goldColor = twinkle > 0.2 ? '#fef08a' : '#fbbf24';
         const glowColor = twinkle > 0 ? '#ffd700' : null;
@@ -345,22 +350,21 @@ export class ChristmasTreeView extends SceneView {
     for (let i = 0; i < this.ornamentPoints.length; i++) {
       const pt = this.ornamentPoints[i];
       const rot = Math3D.rotateY(pt.x, pt.y, pt.z, this.rotationAngle);
-      const proj = Math3D.project(rot, this.cameraDistance, this.fov, centerX, centerY);
+      const proj = Math3D.project(rot, responsiveCam, this.fov, centerX, centerY);
 
       if (proj) {
         buffer.setCell(proj.screenX, proj.screenY, pt.char, pt.color, proj.zDepth + 1.0, pt.glow);
       }
     }
 
-    // 6. Render Apex Star & Light Rays (Fixed facing front or subtly pulsating)
+    // 6. Render Apex Star & Light Rays
     const starGlowIntensity = Math.sin(this.time * 4) * 0.3 + 0.7;
     const starColor = starGlowIntensity > 0.8 ? '#ffee33' : '#ffd700';
 
     for (let i = 0; i < this.starPoints.length; i++) {
       const pt = this.starPoints[i];
-      // Star rays have slight 3D depth, stays at top
       const rot = Math3D.rotateY(pt.x, pt.y, pt.z, this.rotationAngle * 0.2);
-      const proj = Math3D.project(rot, this.cameraDistance, this.fov, centerX, centerY);
+      const proj = Math3D.project(rot, responsiveCam, this.fov, centerX, centerY);
 
       if (proj) {
         const color = pt.isRay ? '#fef08a' : starColor;
@@ -369,8 +373,10 @@ export class ChristmasTreeView extends SceneView {
       }
     }
 
-    // 7. Retro Timer Overlay in top right corner (as seen in reference screenshot: `t 09.67s`)
-    const timerStr = `t ${this.time.toFixed(2).padStart(5, '0')}s`;
-    buffer.writeString(cols - timerStr.length - 2, 1, timerStr, '#ef4444', 100);
+    // 7. Retro Timer Overlay in top right corner (only when width allows without overlap)
+    if (cols >= 60) {
+      const timerStr = `t ${this.time.toFixed(2).padStart(5, '0')}s`;
+      buffer.writeString(cols - timerStr.length - 2, 1, timerStr, '#ef4444', 100);
+    }
   }
 }
