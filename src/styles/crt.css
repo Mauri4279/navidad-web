@@ -1,0 +1,188 @@
+/**
+ * @file crt.css
+ * @description CRT Terminal monitor styling, scanlines, vignette, and retro HUD controls.
+ */
+
+:root {
+  --bg-color: #05050a;
+  --crt-green: #22c55e;
+  --crt-amber: #fbbf24;
+  --crt-cyan: #38bdf8;
+  --crt-red: #ef4444;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  font-family: var(--font-mono);
+  color: #e2e8f0;
+}
+
+#app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+/* Primary ASCII Canvas */
+#ascii-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* CRT Scanlines Overlay */
+.crt-scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.35) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 20;
+  opacity: 0.75;
+}
+
+/* CRT Vignette (curved shadow edges) */
+.crt-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 60%,
+    rgba(5, 5, 10, 0.5) 85%,
+    rgba(5, 5, 10, 0.95) 100%
+  );
+  z-index: 21;
+}
+
+/* Subtle CRT Flicker Animation */
+@keyframes crt-flicker {
+  0% { opacity: 0.985; }
+  50% { opacity: 1; }
+  100% { opacity: 0.99; }
+}
+
+.crt-active {
+  animation: crt-flicker 0.15s infinite;
+}
+
+/* Retro Control HUD / Debug Toolbar */
+#debug-hud {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(10, 15, 25, 0.85);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8), 0 0 8px rgba(34, 197, 94, 0.2);
+  transition: opacity 0.3s ease;
+}
+
+#debug-hud.minimized {
+  opacity: 0.3;
+}
+
+#debug-hud:hover {
+  opacity: 1;
+}
+
+.hud-label {
+  font-size: 11px;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hud-status-badge {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-shadow: 0 0 5px currentColor;
+}
+
+.hud-status-badge.unlocked {
+  color: var(--crt-green);
+  border: 1px solid var(--crt-green);
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.hud-status-badge.locked {
+  color: var(--crt-amber);
+  border: 1px solid var(--crt-amber);
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.hud-btn {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.hud-btn:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: var(--crt-green);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+.hud-btn.active {
+  border-color: var(--crt-green);
+  color: var(--crt-green);
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+}
+
+@media (max-width: 600px) {
+  #debug-hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    bottom: 6px;
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .hud-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+}
