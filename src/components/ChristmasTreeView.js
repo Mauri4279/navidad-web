@@ -269,26 +269,32 @@ export class ChristmasTreeView extends SceneView {
 
   /**
    * Renders the complete 3D scene (ground, tree, ornaments, lights, star, banner) into buffer.
-   * Adapts scale and position responsively to mobile and desktop aspect ratios.
+   * Dynamically positions the banner snug above the tree star on both mobile and desktop.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
    */
   render(buffer) {
     const cols = buffer.cols;
     const rows = buffer.rows;
 
-    // Responsive positioning and scaling
+    // Responsive positioning: center tree vertically in viewport
     const isPortrait = rows > cols;
     const centerX = cols * 0.5;
-    const centerY = isPortrait ? rows * 0.63 : rows * 0.58;
+    const centerY = isPortrait ? rows * 0.53 : rows * 0.54;
 
     // Zoom out camera slightly on narrow viewports so tree and ground reflection fit without clipping
-    const targetWidthCols = 72;
+    const targetWidthCols = 68;
     const responsiveCam = cols < targetWidthCols
-      ? this.cameraDistance * (targetWidthCols / Math.max(36, cols))
+      ? this.cameraDistance * (targetWidthCols / Math.max(34, cols))
       : this.cameraDistance;
 
-    // 1. Render Top Banner
-    this.banner.render(buffer);
+    // Dynamically calculate star apex on screen so banner stays snugly placed right above the star
+    const apexY = this.treeHeight * 0.55;
+    const starApexProj = Math3D.project({ x: 0, y: apexY + 3.8, z: 0 }, responsiveCam, this.fov, centerX, centerY);
+    const bannerHeight = cols >= 68 ? 3 : 4;
+    const bannerTargetY = starApexProj ? Math.max(1, starApexProj.screenY - bannerHeight - 1) : 2;
+
+    // 1. Render Top Banner directly above tree apex
+    this.banner.render(buffer, bannerTargetY);
 
     // 2. Render Ground Reflection / Snow Base (Perspective Rings)
     for (let i = 0; i < this.groundPoints.length; i++) {
@@ -374,7 +380,7 @@ export class ChristmasTreeView extends SceneView {
     }
 
     // 7. Retro Timer Overlay in top right corner (only when width allows without overlap)
-    if (cols >= 60) {
+    if (cols >= 85 && bannerTargetY > 1) {
       const timerStr = `t ${this.time.toFixed(2).padStart(5, '0')}s`;
       buffer.writeString(cols - timerStr.length - 2, 1, timerStr, '#ef4444', 100);
     }
