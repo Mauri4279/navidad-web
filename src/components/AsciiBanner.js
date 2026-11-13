@@ -1,7 +1,7 @@
 /**
  * @file AsciiBanner.js
  * @description Renders the styled Christmas banner above the 3D tree:
- * "Mauri te desea feliz navidad!!!"
+ * "Mauri te desea una feliz navidad!"
  */
 
 import { AsciiRenderable } from '../core/Interfaces.js';
@@ -10,11 +10,11 @@ export class AsciiBanner extends AsciiRenderable {
   constructor() {
     super();
     this.time = 0;
-    this.zIndex = 50; // Above background, below/alongside main content
+    this.zIndex = 50;
   }
 
   /**
-   * Updates banner animation (color cycling / sparkle).
+   * Updates banner animation (sparkling stars & color pulsing).
    * @param {number} deltaTime
    */
   update(deltaTime) {
@@ -22,62 +22,58 @@ export class AsciiBanner extends AsciiRenderable {
   }
 
   /**
-   * Renders the stylized banner into the ASCII buffer.
+   * Renders the banner into the ASCII buffer.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
    */
   render(buffer) {
     const cols = buffer.cols;
 
-    // Stylized ASCII Art Header
-    // Adaptable between wide screens and standard terminal widths
-    const isWide = cols >= 88;
-
-    const bannerLinesWide = [
-      '  __  __                  _   _            _                       _     _           _ _ _ ',
-      ' |  \\/  | __ _ _   _ _ __(_) | |_ ___   __| | ___  ___  ___  __ _  | |__ (_) _____  | | | |',
-      " | |\\/| |/ _` | | | | '__| | | __/ _ \\ / _` |/ _ \\/ __|/ _ \\/ _` | | '_ \\| |/ / _ \\ | | | |",
-      ' | |  | | (_| | |_| | |  | | | ||  __/| (_| |  __/\\__ \\  __/ (_| | | | | |   <  __/ |_|_|_|',
-      ' |_|  |_|\\__,_|\\__,_|_|  |_|  \\__\\___| \\__,_|\\___||___/\\___|\\__,_| |_| |_|_|\\_\\___| (_|_|_)',
-    ];
-
-    const bannerLinesCompact = [
-      '╔═══════════════════════════════════════════════════════════════╗',
-      '║       *  *  *  Mauri te desea feliz navidad!!!  *  *  *       ║',
-      '╚═══════════════════════════════════════════════════════════════╝',
-    ];
-
-    const lines = isWide ? bannerLinesWide : bannerLinesCompact;
-    const bannerWidth = lines[0].length;
-    const startX = Math.max(0, Math.floor((cols - bannerWidth) / 2));
-    const startY = 1;
-
-    // Golden / festive holiday color
+    // Golden & festive colors
     const goldColor = '#ffd700';
-    const accentColor = '#ef4444';
-    const whiteColor = '#f8fafc';
+    const amberColor = '#fbbf24';
+    const whiteColor = '#ffffff';
+    const redAccent = '#ef4444';
 
-    // Sparkle effect
-    const sparkleChars = ['*', '+', '✦', '·'];
-    const sparkleChar = sparkleChars[Math.floor(this.time * 4) % sparkleChars.length];
+    // Animated sparkles
+    const sparkles = ['★', '✦', '*', '·'];
+    const sp1 = sparkles[Math.floor(this.time * 3) % sparkles.length];
+    const sp2 = sparkles[Math.floor(this.time * 3 + 2) % sparkles.length];
 
-    for (let r = 0; r < lines.length; r++) {
-      const line = lines[r];
-      const curY = startY + r;
-      if (curY >= buffer.rows) break;
+    if (cols >= 78) {
+      // Single-line ornate ribbon on wide screens
+      const innerText = ` ${sp1}  *  Mauri te desea una feliz navidad!  *  ${sp2} `;
+      const boxWidth = innerText.length + 4;
+      const startX = Math.max(0, Math.floor((cols - boxWidth) / 2));
+      const startY = 1;
 
-      // Color gradient or alternating festive tones
-      const lineColor = isWide
-        ? (r === 0 || r === 4 ? goldColor : whiteColor)
-        : (r === 1 ? goldColor : accentColor);
+      const topLine = '╔' + '═'.repeat(boxWidth - 2) + '╗';
+      const midLine = '║ ' + innerText + ' ║';
+      const botLine = '╚' + '═'.repeat(boxWidth - 2) + '╝';
 
-      const glowColor = r === 2 || r === 1 ? '#fbbf24' : null;
-      buffer.writeString(startX, curY, line, lineColor, this.zIndex, glowColor);
-    }
+      buffer.writeString(startX, startY, topLine, goldColor, this.zIndex, '#fef08a');
+      buffer.writeString(startX, startY + 1, midLine, whiteColor, this.zIndex, amberColor);
+      buffer.writeString(startX, startY + 2, botLine, goldColor, this.zIndex, '#fef08a');
+    } else {
+      // Responsive two-line ribbon for compact/mobile viewports
+      const line1Text = ` ${sp1} Mauri te desea ${sp2} `;
+      const line2Text = ` ~*~ una feliz navidad! ~*~ `;
+      const contentWidth = Math.max(line1Text.length, line2Text.length) + 4;
+      const boxWidth = Math.min(cols - 2, contentWidth);
+      const startX = Math.max(0, Math.floor((cols - boxWidth) / 2));
+      const startY = 1;
 
-    // Add glowing stars on the left and right sides of banner if space permits
-    if (startX >= 4) {
-      buffer.setCell(startX - 3, startY + 1, sparkleChar, goldColor, this.zIndex, '#fef08a');
-      buffer.setCell(startX + bannerWidth + 2, startY + 1, sparkleChar, goldColor, this.zIndex, '#fef08a');
+      const topLine = '╔' + '═'.repeat(boxWidth - 2) + '╗';
+      const pad1 = Math.max(0, Math.floor((boxWidth - 2 - line1Text.length) / 2));
+      const pad2 = Math.max(0, Math.floor((boxWidth - 2 - line2Text.length) / 2));
+
+      const midLine1 = '║' + ' '.repeat(pad1) + line1Text + ' '.repeat(Math.max(0, boxWidth - 2 - line1Text.length - pad1)) + '║';
+      const midLine2 = '║' + ' '.repeat(pad2) + line2Text + ' '.repeat(Math.max(0, boxWidth - 2 - line2Text.length - pad2)) + '║';
+      const botLine = '╚' + '═'.repeat(boxWidth - 2) + '╝';
+
+      buffer.writeString(startX, startY, topLine, goldColor, this.zIndex, '#fef08a');
+      buffer.writeString(startX, startY + 1, midLine1, amberColor, this.zIndex, '#fef08a');
+      buffer.writeString(startX, startY + 2, midLine2, whiteColor, this.zIndex, redAccent);
+      buffer.writeString(startX, startY + 3, botLine, goldColor, this.zIndex, '#fef08a');
     }
   }
 }
