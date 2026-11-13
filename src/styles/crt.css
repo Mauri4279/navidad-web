@@ -1,6 +1,6 @@
 /**
  * @file crt.css
- * @description CRT Terminal monitor styling, scanlines, vignette, and retro typography.
+ * @description CRT Terminal monitor styling, scanlines, vignette, and responsive mobile layout.
  */
 
 :root {
@@ -17,21 +17,28 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 html, body {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
+  position: fixed;
   background-color: var(--bg-color);
   font-family: var(--font-mono);
   color: #e2e8f0;
+  touch-action: manipulation;
+  overscroll-behavior: none;
 }
 
 #app-container {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background-color: var(--bg-color);
 }
@@ -46,7 +53,7 @@ html, body {
   display: block;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  filter: contrast(1.1) brightness(1.05);
+  filter: contrast(1.08) brightness(1.04);
 }
 
 /* CRT Scanlines Overlay */
@@ -59,11 +66,11 @@ html, body {
   pointer-events: none;
   background: linear-gradient(
     rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.35) 50%
+    rgba(0, 0, 0, 0.32) 50%
   );
   background-size: 100% 4px;
   z-index: 20;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 /* CRT Vignette (curved shadow edges) */
@@ -76,8 +83,8 @@ html, body {
   pointer-events: none;
   background: radial-gradient(
     circle at center,
-    transparent 60%,
-    rgba(5, 5, 10, 0.5) 85%,
+    transparent 58%,
+    rgba(5, 5, 10, 0.45) 82%,
     rgba(5, 5, 10, 0.95) 100%
   );
   z-index: 21;
@@ -92,4 +99,12 @@ html, body {
 
 .crt-active {
   animation: crt-flicker 0.15s infinite;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+  .crt-scanlines {
+    background-size: 100% 3px;
+    opacity: 0.55;
+  }
 }
