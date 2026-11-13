@@ -26,8 +26,9 @@ export class AsciiBanner extends AsciiRenderable {
    * Renders the banner into the ASCII buffer.
    * Dynamically adapts to narrow mobile screens or wide viewports.
    * @param {import('../core/AsciiBuffer.js').AsciiBuffer} buffer
+   * @param {number|null} [targetY=null] - Optional dynamically computed Y row position.
    */
-  render(buffer) {
+  render(buffer, targetY = null) {
     const cols = buffer.cols;
 
     // Golden & festive colors
@@ -41,12 +42,12 @@ export class AsciiBanner extends AsciiRenderable {
     const sp1 = sparkles[Math.floor(this.time * 3) % sparkles.length];
     const sp2 = sparkles[Math.floor(this.time * 3 + 2) % sparkles.length];
 
-    if (cols >= 75) {
+    if (cols >= 68) {
       // Single-line ornate ribbon on wide screens
-      const innerText = ` ${sp1}  *  Mauri te desea una feliz navidad!  *  ${sp2} `;
-      const boxWidth = innerText.length + 4;
+      const innerText = ` ${sp1}  *  M A U R I   T E   D E S E A   U N A   F E L I Z   N A V I D A D !  *  ${sp2} `;
+      const boxWidth = Math.min(cols - 2, innerText.length + 4);
       const startX = Math.max(0, Math.floor((cols - boxWidth) / 2));
-      const startY = 1;
+      const startY = targetY !== null ? Math.max(1, targetY) : 1;
 
       const topLine = '╔' + '═'.repeat(boxWidth - 2) + '╗';
       const midLine = '║ ' + innerText + ' ║';
@@ -56,13 +57,19 @@ export class AsciiBanner extends AsciiRenderable {
       buffer.writeString(startX, startY + 1, midLine, whiteColor, this.zIndex, amberColor);
       buffer.writeString(startX, startY + 2, botLine, goldColor, this.zIndex, '#fef08a');
     } else {
-      // Responsive two-line ribbon for mobile viewports
-      const line1Text = `${sp1} Mauri te desea ${sp2}`;
-      const line2Text = cols < 45 ? `una feliz navidad!` : `~*~ una feliz navidad! ~*~`;
+      // Bold two-line ribbon for mobile viewports
+      const useSpaced = cols >= 48;
+      const line1Text = useSpaced
+        ? `${sp1}  *  M A U R I   T E   D E S E A  *  ${sp2}`
+        : `${sp1} Mauri te desea ${sp2}`;
+      const line2Text = useSpaced
+        ? `✦  U N A   F E L I Z   N A V I D A D !  ✦`
+        : `~*~ una feliz navidad! ~*~`;
+
       const maxTextLen = Math.max(line1Text.length, line2Text.length);
       const boxWidth = Math.min(cols - 2, maxTextLen + 4);
       const startX = Math.max(0, Math.floor((cols - boxWidth) / 2));
-      const startY = 1;
+      const startY = targetY !== null ? Math.max(1, targetY) : 1;
 
       const topLine = '╔' + '═'.repeat(Math.max(0, boxWidth - 2)) + '╗';
       const pad1 = Math.max(0, Math.floor((boxWidth - 2 - line1Text.length) / 2));
