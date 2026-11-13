@@ -41,9 +41,6 @@ export class AsciiRenderEngine {
     this.fps = 60;
     this.frameCount = 0;
     this.fpsTimer = 0;
-
-    this.#handleResize = this.#handleResize.bind(this);
-    this.#loop = this.#loop.bind(this);
   }
 
   /**
@@ -89,9 +86,10 @@ export class AsciiRenderEngine {
 
   /**
    * Recalculates canvas dimensions and buffer grid when window resizes.
+   * Bound automatically as private arrow field.
    * @private
    */
-  #handleResize() {
+  #handleResize = () => {
     if (!this.canvas || !this.ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
@@ -117,7 +115,7 @@ export class AsciiRenderEngine {
 
     this.cols = newCols;
     this.rows = newRows;
-  }
+  };
 
   /**
    * Registers or replaces an AsciiRenderable in a specific layer.
@@ -159,10 +157,11 @@ export class AsciiRenderEngine {
 
   /**
    * Main animation loop coordinating updates and layered rendering.
+   * Bound automatically as private arrow field.
    * @param {number} timestamp
    * @private
    */
-  #loop(timestamp) {
+  #loop = (timestamp) => {
     if (!this.isRunning) return;
 
     // Calculate delta time in seconds (capped at 0.1s to prevent jumps on tab focus)
@@ -207,12 +206,22 @@ export class AsciiRenderEngine {
     this.buffer.renderToCanvas(this.ctx, this.cellWidth, this.cellHeight);
 
     this.animationFrameId = requestAnimationFrame(this.#loop);
-  }
+  };
 
   /**
    * Helper to get current grid dimensions.
    */
   getGridDimensions() {
     return { cols: this.cols, rows: this.rows };
+  }
+
+  /**
+   * Clean up event listeners and animation frame on teardown.
+   */
+  destroy() {
+    this.stop();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.#handleResize);
+    }
   }
 }
