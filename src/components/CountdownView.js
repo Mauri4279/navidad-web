@@ -81,8 +81,6 @@ export class CountdownView extends SceneView {
 
     // Header & Subtitle
     const titleText = '* * * CUENTA REGRESIVA PARA NAVIDAD * * *';
-    const unlockMsg = 'EL REGALO SE DESBLOQUEARA EN NAVIDAD (25 DE DICIEMBRE)';
-    const statusMsg = '[ ESTADO: LOCKED | TimeGateController ACTIVO ]';
 
     // Calculate vertical centering
     const totalContentHeight = 16;
@@ -157,14 +155,6 @@ export class CountdownView extends SceneView {
     buffer.writeString(curLabelX + 1, labelsY, unitMins, silverColor, z);
     curLabelX += blockMins[0].length + separator.length + blockColon[0].length + separator.length;
     buffer.writeString(curLabelX + 1, labelsY, unitSecs, silverColor, z);
-
-    // 5. Unlock Notice Message
-    const msgX = Math.floor((cols - unlockMsg.length) / 2);
-    buffer.writeString(msgX, startY + 13, unlockMsg, goldColor, z, '#ffd700');
-
-    // 6. Controller Status
-    const statusX = Math.floor((cols - statusMsg.length) / 2);
-    buffer.writeString(statusX, startY + 15, statusMsg, '#64748b', z);
 
     // 7. Decorative Bottom Border
     buffer.writeString(borderX, startY + 17, borderLine, greenColor, z);
